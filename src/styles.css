@@ -1,0 +1,6 @@
+html{min-width:320px;scroll-behavior:smooth}
+body{min-width:320px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #c39543;outline-offset:3px}
+.currency-switch button,.nav-item,.loan-product,.icon-button,.gold-button,.tool-button{transition:background-color .18s ease,border-color .18s ease,transform .18s ease}
+.loan-product:hover{transform:translateY(-2px)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}

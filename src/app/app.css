@@ -1,0 +1,42 @@
+:host{display:block}
+.nav-count{margin-left:auto;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#fff;font:700 8px "DM Mono",monospace}
+.cash-callout{margin-top:13px;padding:12px;border-radius:7px;background:linear-gradient(135deg,#f6f1e7,#fbfaf7);border:1px solid #e8dcc5}
+.cash-callout span,.cash-callout strong,.cash-callout small{display:block}
+.cash-callout span{font-size:7px;letter-spacing:1px;color:#98703a;font-weight:700}
+.cash-callout strong{font:500 17px "DM Mono",monospace;color:#263b61;margin:6px 0}
+.cash-callout small{font-size:8px;color:#7283a2}
+.model-note{font-size:8px;color:var(--muted);line-height:1.55;margin:9px 2px 0}
+.risk-pill{color:#a44936;border-color:#e8c2b9;background:#fff8f6}
+.scenario-name-input{width:125px;height:32px;padding:0 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font:9px "DM Sans",sans-serif}
+.vault-panel{min-height:370px}
+.vault-intro{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px 15px;border:1px solid var(--line);border-radius:8px;background:linear-gradient(115deg,#f8f6f1,#fff 70%)}
+.vault-orbit{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;background:#f1e4c9;color:#a8782d;font-size:19px}
+.vault-intro>div:nth-child(2)>strong{font-size:10px;color:var(--ink)}
+.vault-intro p{font-size:8px;line-height:1.5;color:var(--muted);margin:4px 0 0}
+.vault-save{display:flex;align-items:flex-end;gap:7px}
+.vault-save label{display:block;color:#8290aa;font-size:7px;letter-spacing:.5px}
+.vault-save input{display:block;width:145px;height:32px;margin-top:5px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:9px "DM Sans",sans-serif}
+.vault-save .gold-button{white-space:nowrap}
+.vault-empty{min-height:205px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px}
+.vault-empty>span{font-size:25px;color:#b78436;margin-bottom:8px}
+.vault-empty>strong{font:700 15px "Playfair Display",Georgia;color:var(--ink)}
+.vault-empty p{font-size:9px;color:var(--muted);margin:7px 0 13px}
+.vault-empty .gold-button{height:30px}
+.scenario-table-wrap{overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:7px}
+.scenario-table{min-width:800px}
+.scenario-table th,.scenario-table td{text-align:left}
+.scenario-table td:first-child strong,.scenario-table td:first-child small{display:block}
+.scenario-table td:first-child small{font-size:7px;color:var(--muted);margin-top:4px}
+.scenario-actions{white-space:nowrap}
+.remove-button{color:#a44936}
+.foir-badge{display:inline-block;padding:4px 7px;border-radius:12px;background:#edf5f1;color:#377b68;font:8px "DM Mono",monospace}
+.foir-high{background:#fff0ec;color:#a44936}
+.vault-footnote{font-size:7px;line-height:1.5;color:var(--muted);padding:11px 2px}
+body.dark .cash-callout,body.dark .vault-intro{background:#223653;border-color:var(--line)}
+body.dark .cash-callout strong{color:#e7edf6}
+body.dark .risk-pill{background:#422f37;color:#f1b3a5;border-color:#63454c}
+body.dark .foir-badge{background:#203f3a;color:#a6d9c7}
+body.dark .foir-high{background:#472f38;color:#efaaa0}
+@media(max-width:1050px){.vault-intro{grid-template-columns:38px minmax(0,1fr)}.vault-save{grid-column:2;flex-wrap:wrap}}
+@media(max-width:760px){.vault-intro{grid-template-columns:34px minmax(0,1fr);padding:11px}.vault-save{grid-column:1/-1}.vault-save input{width:min(220px,48vw)}.scenario-name-input{flex:1}.toolbar .gold-button{margin-left:auto}}
+@media(max-width:420px){.cash-callout strong{font-size:15px}.vault-save{align-items:stretch;flex-direction:column}.vault-save input{width:100%}.vault-save .gold-button{width:100%}}

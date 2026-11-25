@@ -1,0 +1,262 @@
+<aside class="sidebar">
+  <a class="brand" href="#" (click)="$event.preventDefault(); setPage('overview')" aria-label="AuraVault home">
+    <span class="brand-mark">A</span>
+    <span><strong>AuraVault</strong><small>WEALTH INTELLIGENCE</small></span>
+  </a>
+  <nav class="main-nav" aria-label="Main navigation">
+    @for (item of pages; track item.id) {
+      <button class="nav-item" [class.active]="page === item.id" (click)="setPage(item.id)">
+        <span>{{ item.icon }}</span>{{ item.label }}
+        @if (item.id === 'vault' && scenarios.length > 0) {
+          <span class="nav-count">{{ scenarios.length }}</span>
+        }
+      </button>
+    }
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="advisor-avatar">AV</div>
+    <div><strong>Advisor Console</strong><small>Your private workspace</small></div>
+  </div>
+</aside>
+
+<main class="main-content">
+  <header class="topbar">
+    <div class="page-heading">
+      <p class="eyebrow">MORTGAGE INTELLIGENCE · {{ page === 'vault' ? 'SCENARIO STUDIO' : 'PERSONAL FINANCE' }}</p>
+      <h1>
+        @switch (page) {
+          @case ('overview') { Financing overview }
+          @case ('prepayment') { Pay less, own sooner }
+          @case ('buyrent') { Buy vs rent }
+          @case ('stress') { Know your comfort zone }
+          @case ('india') { India loan suite }
+          @case ('vault') { Your Scenario Vault }
+        }
+      </h1>
+    </div>
+    <div class="toolbar">
+      <div class="currency-switch" aria-label="Display currency" title="Changes display format only; no exchange-rate conversion">
+        @for (item of currencies; track item) {
+          <button class="currency" [class.active]="currency === item" (click)="setCurrency(item)">{{ item }}</button>
+        }
+      </div>
+      <button class="icon-button" (click)="toggleTheme()" title="Toggle dark theme" aria-label="Toggle dark theme">{{ dark ? '☼' : '◐' }}</button>
+      <button class="tool-button" (click)="exportCsv()">Export CSV</button>
+      <button class="icon-button" (click)="shareScenario()" title="Copy scenario summary" aria-label="Copy scenario summary">↗</button>
+      <button class="gold-button" (click)="saveScenario()">＋ Save plan</button>
+    </div>
+  </header>
+
+  <section class="metric-grid" aria-label="Loan summary">
+    <article class="metric-card">
+      <div class="metric-label">MONTHLY EMI <b>01</b></div>
+      <div class="metric-value">{{ money(base.emi) }}</div>
+      <div class="metric-foot">Loan principal <strong>{{ compact(principal) }}</strong></div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-label">TOTAL INTEREST <b>02</b></div>
+      <div class="metric-value">{{ compact(base.totalInterest) }}</div>
+      <div class="metric-foot">Over <strong>{{ tenure }} years</strong></div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-label">LOAN-TO-VALUE <b>03</b></div>
+      <div class="metric-value">{{ 100 - margin }}%</div>
+      <div class="metric-foot">Down payment <strong>{{ compact(downPayment) }}</strong></div>
+    </article>
+    <article class="metric-card metric-dark">
+      <div class="metric-label">INTEREST SAVED <b>04</b></div>
+      <div class="metric-value">{{ compact(savedInterest) }}</div>
+      <div class="metric-foot"><strong>{{ monthsSaved }} months</strong> earlier payoff</div>
+    </article>
+  </section>
+
+  <section class="workspace">
+    <aside class="panel parameters">
+      <div class="panel-heading">
+        <div><p class="eyebrow">LOAN SETUP</p><h2>Make it yours</h2></div>
+        <button class="text-button" (click)="reset()">Reset</button>
+      </div>
+      <div class="range-field">
+        <div class="range-label"><label for="property">Property value</label><output>{{ money(property) }}</output></div>
+        <input id="property" type="range" min="1000000" max="50000000" step="100000" [(ngModel)]="property" (ngModelChange)="recalculate()">
+      </div>
+      <div class="range-field">
+        <div class="range-label"><label for="margin">Down payment</label><output>{{ margin }}% · {{ compact(downPayment) }}</output></div>
+        <input id="margin" type="range" min="5" max="50" step="1" [(ngModel)]="margin" (ngModelChange)="recalculate()">
+      </div>
+      <div class="range-field">
+        <div class="range-label"><label for="rate">Interest rate</label><output>{{ rate.toFixed(2) }}%</output></div>
+        <input id="rate" type="range" min="3" max="18" step=".05" [(ngModel)]="rate" (ngModelChange)="recalculate()">
+      </div>
+      <div class="range-field">
+        <div class="range-label"><label for="tenure">Loan tenure</label><output>{{ tenure }} years</output></div>
+        <input id="tenure" type="range" min="1" max="30" step="1" [(ngModel)]="tenure" (ngModelChange)="recalculate()">
+      </div>
+      <div class="ownership-row">
+        <div><strong>Include purchase costs</strong><small>Estimate 1.2% for closing costs</small></div>
+        <label class="switch"><input type="checkbox" [(ngModel)]="ownership"><span></span></label>
+      </div>
+      <div class="cash-callout">
+        <span>ESTIMATED CASH TO CLOSE</span>
+        <strong>{{ compact(downPayment + property * 0.012) }}</strong>
+        <small>Down payment + estimated closing costs</small>
+      </div>
+    </aside>
+
+    <section class="panel content-panel page-panel" [class.active]="page === 'overview'">
+      <div class="panel-heading">
+        <div><p class="eyebrow">CASHFLOW ARCHITECTURE</p><h2>Payment breakdown</h2></div>
+        <span class="pill">DEBT FREE · {{ payoffDate.getFullYear() }}</span>
+      </div>
+      <div class="overview-layout">
+        <div class="donut-wrap">
+          <div class="donut" [style.background]="'conic-gradient(var(--navy-2) 0 ' + (100 - (base.totalInterest / (principal + base.totalInterest) * 100)) + '%, #d9ad5f ' + (100 - (base.totalInterest / (principal + base.totalInterest) * 100)) + '% 100%)'">
+            <div><small>MONTHLY</small><strong>{{ money(base.emi) }}</strong></div>
+          </div>
+        </div>
+        <div class="breakdown-list">
+          <div class="breakdown-row"><span class="dot navy"></span><div><strong>Principal</strong><small>Amount borrowed</small></div><b>{{ compact(principal) }}</b></div>
+          <div class="breakdown-row"><span class="dot gold"></span><div><strong>Interest</strong><small>Total borrowing cost</small></div><b>{{ compact(base.totalInterest) }}</b></div>
+          <div class="breakdown-row"><span class="dot green"></span><div><strong>Closing costs</strong><small>Estimated one-time costs</small></div><b>{{ compact(ownershipCost) }}</b></div>
+        </div>
+      </div>
+      <div class="insight">
+        <span class="sparkle">✦</span>
+        <div>
+          <strong>Aura insight</strong>
+          @if (savedInterest > 0) {
+            <p>Your current repayment plan could save {{ compact(savedInterest) }} in interest and close the loan {{ monthsSaved }} months earlier.</p>
+          } @else {
+            <p>Try a monthly top-up in Prepayment to see how a small change could shorten your loan.</p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="panel content-panel page-panel" [class.active]="page === 'prepayment'">
+      <div class="panel-heading"><div><p class="eyebrow">ACCELERATION ENGINE</p><h2>Prepayment strategy</h2></div><span class="pill">NO PREPAYMENT PENALTY ASSUMED</span></div>
+      <div class="input-grid three">
+        <label class="input-field">EXTRA MONTHLY<input type="number" min="0" [(ngModel)]="extraMonthly" (ngModelChange)="recalculate()"></label>
+        <label class="input-field">ANNUAL LUMP SUM<input type="number" min="0" [(ngModel)]="lumpSum" (ngModelChange)="recalculate()"></label>
+        <label class="input-field">ANNUAL EMI STEP-UP %<input type="number" min="0" max="100" [(ngModel)]="stepUp" (ngModelChange)="recalculate()"></label>
+      </div>
+      <div class="mini-metrics">
+        <div><small>Interest saved</small><strong>{{ compact(savedInterest) }}</strong></div>
+        <div><small>Debt-free by</small><strong>{{ payoffDate | date:'MMM yyyy' }}</strong></div>
+        <div><small>Time saved</small><strong>{{ monthsSaved }} months</strong></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>PERIOD</th><th>OPENING</th><th>PRINCIPAL</th><th>INTEREST</th><th>PREPAYMENT</th><th>CLOSING</th></tr></thead>
+          <tbody>
+            @for (row of scheduleRows; track row.month) {
+              <tr><td>Year {{ Math.ceil(row.month / 12) }}</td><td>{{ compact(row.opening) }}</td><td>{{ compact(row.principal) }}</td><td>{{ compact(row.interest) }}</td><td>{{ compact(row.prepayment) }}</td><td>{{ compact(row.closing) }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel content-panel page-panel" [class.active]="page === 'buyrent'">
+      <div class="panel-heading"><div><p class="eyebrow">NET WORTH MODEL · 20 YEARS</p><h2>Which path builds more?</h2></div><span class="pill">ILLUSTRATIVE, NOT A FORECAST</span></div>
+      <div class="input-grid four">
+        <label class="input-field">MONTHLY RENT<input type="number" min="0" [(ngModel)]="rent" (ngModelChange)="recalculate()"></label>
+        <label class="input-field">RENT INFLATION %<input type="number" min="0" max="30" step=".1" [(ngModel)]="rentInflation" (ngModelChange)="recalculate()"></label>
+        <label class="input-field">HOME APPRECIATION %<input type="number" min="0" max="30" step=".1" [(ngModel)]="appreciation" (ngModelChange)="recalculate()"></label>
+        <label class="input-field">INVESTMENT RETURN %<input type="number" min="0" max="40" step=".1" [(ngModel)]="sipReturn" (ngModelChange)="recalculate()"></label>
+      </div>
+      <div class="chart-box">
+        <canvas #buyRentChart aria-label="Twenty-year buy versus rent net worth chart"></canvas>
+        <div class="chart-legend"><span><i class="legend-dot navy"></i>Buy: home equity + invested surplus</span><span><i class="legend-dot gold"></i>Rent: invested cash + monthly savings</span></div>
+      </div>
+      <p class="model-note">Assumes 1% annual maintenance, 1.2% closing costs, and that available monthly savings are invested. Actual taxes, fees, returns, and property costs vary.</p>
+    </section>
+
+    <section class="panel content-panel page-panel" [class.active]="page === 'stress'">
+      <div class="panel-heading"><div><p class="eyebrow">RISK &amp; AFFORDABILITY</p><h2>FOIR &amp; rate shock</h2></div><span class="pill" [class.risk-pill]="foir !== null && foir >= 55">{{ stressStatus }}</span></div>
+      <div class="input-grid three">
+        <label class="input-field">MONTHLY INCOME<input type="number" min="0" [(ngModel)]="income" (ngModelChange)="recalculate()"></label>
+        <label class="input-field">EXISTING EMI<input type="number" min="0" [(ngModel)]="existingEmi" (ngModelChange)="recalculate()"></label>
+        <label class="input-field">RATE SHOCK %<input type="number" min="0" max="10" step=".25" [(ngModel)]="shock" (ngModelChange)="recalculate()"></label>
+      </div>
+      <div class="stress-layout">
+        <div class="foir-donut" [style.background]="'conic-gradient(var(--gold) 0 ' + (foir !== null ? Math.min(foir, 100) : 0) + '%, #e7edf5 ' + (foir !== null ? Math.min(foir, 100) : 0) + '% 100%)'">
+          <div><strong>{{ foir === null ? '—' : foir.toFixed(1) + '%' }}</strong><small>FOIR</small></div>
+        </div>
+        <div class="stress-stats">
+          <div><span>Current payment</span><strong>{{ money(base.emi) }}</strong></div>
+          <div><span>EMI after +{{ shock }}% rate shock</span><strong>{{ money(stressedEmi) }}</strong></div>
+          <div><span>Monthly disposable income</span><strong>{{ compact(disposableIncome) }}</strong></div>
+        </div>
+      </div>
+      <p class="model-note">FOIR is estimated as (existing EMIs + this loan's EMI) ÷ monthly income. Lenders use different eligibility rules.</p>
+    </section>
+
+    <section class="panel content-panel page-panel" [class.active]="page === 'india'">
+      <div class="panel-heading"><div><p class="eyebrow">INDIA CREDIT PRODUCTS</p><h2>Loan comparison suite</h2></div><span class="pill">INDICATIVE MARKET BANDS</span></div>
+      <div class="loan-products">
+        @for (product of products; track product.name) {
+          <button class="loan-product" [class.selected]="selectedProduct === product.name" (click)="setProduct(product.name)">
+            <small>{{ product.category }}</small><strong>{{ product.name }}</strong><span>{{ product.range }}</span>
+          </button>
+        }
+      </div>
+      <div class="mini-metrics product-summary">
+        <div><small>Selected product</small><strong>{{ selectedProduct }}</strong></div>
+        <div><small>Estimated EMI</small><strong>{{ money(base.emi) }}</strong></div>
+        <div><small>Indicative rate</small><strong>{{ selectedProductRate.toFixed(2) }}% p.a.</strong></div>
+        <div><small>Total interest</small><strong>{{ compact(base.totalInterest) }}</strong></div>
+      </div>
+      <div class="insight india-note"><div><strong>Indian lending context</strong><p>Rates and eligibility vary by lender, credit profile, fees, and policy. Confirm current offers and prepayment terms directly with the lender. This is a planning estimate, not a quotation.</p></div></div>
+    </section>
+
+    <section class="panel content-panel page-panel vault-panel" [class.active]="page === 'vault'">
+      <div class="panel-heading">
+        <div><p class="eyebrow">YOUR PRIVATE WORKSPACE · SAVED ON THIS DEVICE</p><h2>Compare your what-ifs</h2></div>
+        <span class="pill">{{ scenarios.length }} / 12 SAVED</span>
+      </div>
+      <div class="vault-intro">
+        <div class="vault-orbit">✦</div>
+        <div><strong>Good decisions start with a side-by-side view.</strong><p>Save a plan from any screen, then compare the real trade-offs here. Your scenarios stay in this browser — no account needed.</p></div>
+        <div class="vault-save">
+          <label for="scenarioName">NAME THIS PLAN<input id="scenarioName" type="text" maxlength="40" placeholder="e.g. 15-year fixed rate" [(ngModel)]="scenarioName"></label>
+          <button class="gold-button" (click)="saveScenario()">Save current plan</button>
+        </div>
+      </div>
+      @if (scenarios.length === 0) {
+        <div class="vault-empty">
+          <span>◇</span><strong>Your vault is ready for its first plan</strong>
+          <p>Adjust the loan settings, name your plan, and select <b>Save plan</b>.</p>
+          <button class="gold-button" (click)="setPage('overview')">Build a scenario</button>
+        </div>
+      } @else {
+        <div class="scenario-table-wrap">
+          <table class="scenario-table">
+            <thead><tr><th>PLAN</th><th>PROPERTY</th><th>DOWN PAYMENT</th><th>RATE / TERM</th><th>MONTHLY EMI</th><th>TOTAL INTEREST</th><th>FOIR</th><th>ACTIONS</th></tr></thead>
+            <tbody>
+              @for (scenario of scenarios; track scenario.id) {
+                <tr>
+                  <td><strong>{{ scenario.name }}</strong><small>{{ scenario.savedAt | date:'mediumDate' }}</small></td>
+                  <td>{{ compact(scenario.property, scenario.currency) }}</td>
+                  <td>{{ compact(scenario.downPayment, scenario.currency) }}</td>
+                  <td>{{ scenario.rate }}% · {{ scenario.tenure }}y</td>
+                  <td><strong>{{ money(scenario.emi, scenario.currency) }}</strong></td>
+                  <td>{{ compact(scenario.interest, scenario.currency) }}</td>
+                  <td><span class="foir-badge" [class.foir-high]="scenario.foir !== null && scenario.foir >= 55">{{ scenario.foir === null ? 'N/A' : scenario.foir.toFixed(1) + '%' }}</span></td>
+                  <td class="scenario-actions"><button class="text-button" (click)="loadScenario(scenario)">Load</button><button class="text-button remove-button" (click)="removeScenario(scenario.id)" [attr.aria-label]="'Remove ' + scenario.name">Remove</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <div class="vault-footnote">All saved plans are stored locally in this browser. Estimates are illustrative and are not loan offers or financial advice.</div>
+    </section>
+  </section>
+
+  <footer class="disclaimer">AuraVault is an analytical planning tool. Estimates are not loan offers or financial advice.</footer>
+</main>
+
+@if (toastMessage) {
+  <div class="toast show" role="status" aria-live="polite">{{ toastMessage }}</div>
+}
