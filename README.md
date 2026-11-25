@@ -26,6 +26,12 @@ npm start
 
 Open the local URL printed by Angular CLI (usually `http://localhost:4200`). Run `npm test` for the calculator unit tests. For a production build, run `npm run build`; output is written to `dist/`.
 
+## Deploy to Netlify
+
+The recommended option is to import this GitHub repository into Netlify. Choose **Add new site → Import an existing project**, connect GitHub, select `AimanMomin07/aura-vault`, and deploy the `main` branch. Netlify reads `netlify.toml` for the build command and publish directory.
+
+For a manual drag-and-drop deploy, run `npm install` and `npm run build`, then drag the **`dist/auravault/browser`** folder into Netlify's manual deploy area. Do not drag the project root or the parent `dist/auravault` folder; Netlify needs `index.html` at the root of the folder you upload.
+
 ## Project structure
 
 ```text
@@ -39,6 +45,7 @@ AuraVault-Calculator/
 │   └── styles.css
 ├── css/
 │   └── style.css
+├── netlify.toml
 ├── angular.json
 └── package.json
 ```
